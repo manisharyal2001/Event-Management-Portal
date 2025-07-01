@@ -6,14 +6,14 @@ A Java-based full-stack Event Ticket Token System built using **Vert.x 4.5.1**, 
 
 ##  Features
 
-- ✅ User Registration with Email Password Delivery
-- ✅ Login Authentication
-- ✅ View Available Events & Tokens
-- ✅ Book Event Tokens
-- ✅ MongoDB Backend
-- ✅ SMTP Integration (Jakarta Mail)
-- ✅ Secure Password Hashing (jBCrypt)
-- ✅ REST API + Static Web UI
+-  User Registration with Email Password Delivery
+-  Login Authentication
+-  View Available Events & Tokens
+-  Book Event Tokens
+-  MongoDB Backend
+-  SMTP Integration (Jakarta Mail)
+-  Secure Password Hashing (jBCrypt)
+-  REST API + Static Web UI
 
 ---
 
