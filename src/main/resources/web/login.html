@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 40px;
+          max-width: 400px;
+          margin: auto;
+        }
+
+        h2 {
+          text-align: center;
+          color: #333;
+        }
+
+        form {
+          display: flex;
+          flex-direction: column;
+        }
+
+        input {
+          padding: 10px;
+          margin: 10px 0;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+        }
+
+        button {
+          padding: 10px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+
+        button:hover {
+          background-color: #0056b3;
+        }
+
+        .message {
+          color: red;
+          margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<h2>Login</h2>
+<form id="loginForm">
+    <input type="email" id="email" placeholder="Enter your email" required>
+    <input type="password" id="password" placeholder="Enter your password" required>
+    <button type="submit">Login</button>
+    <div class="message" id="message"></div>
+</form>
+
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const message = document.getElementById("message");
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          message.style.color = 'green';
+          message.textContent = "Login successful!";
+          // Optional: redirect to dashboard
+          setTimeout(() => {
+            window.location.href = "/events.html";
+          }, 1000);
+        } else {
+          message.style.color = 'red';
+          message.textContent = result.error || "Login failed";
+        }
+      } catch (err) {
+        message.textContent = "Error: " + err.message;
+      }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Register</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #f2f2f2;
+          padding: 50px;
+        }
+        .form-container {
+          background: #fff;
+          padding: 25px;
+          max-width: 400px;
+          margin: auto;
+          box-shadow: 0 0 10px rgba(0,0,0,0.2);
+          border-radius: 10px;
+        }
+        input {
+          width: 100%;
+          padding: 10px;
+          margin: 10px 0;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+        }
+        button {
+          padding: 10px 20px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+        button:hover {
+          background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <h2>Register</h2>
+    <form id="registerForm">
+        <label for="name"></label><input type="text" id="name" placeholder="Name" required />
+        <label for="email"></label><input type="email" id="email" placeholder="Email" required />
+        <button type="submit">Register</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+
+      try {
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert("✅ Registered successfully! Check your email.");
+          window.location.href = "/login.html";
+        } else {
+          alert("❌ Registration failed: " + data.error);
+        }
+      } catch (err) {
+        alert("❌ Network error: " + err);
+      }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Available Events</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 20px;
+        }
+        h1 {
+          color: #333;
+        }
+        .event {
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          padding: 15px;
+          margin-bottom: 10px;
+          background-color: #f9f9f9;
+        }
+        button {
+          padding: 8px 12px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+        button:hover {
+          background-color: #0056b3;
+        }
+        input {
+          padding: 6px;
+          margin-top: 5px;
+          margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>Available Events</h1>
+
+<label for="email">Your Email:</label><br>
+<input type="email" id="email" placeholder="Enter your email" required><br>
+
+<div id="events"></div>
+
+<script>
+    async function loadEvents() {
+      try {
+        const res = await fetch('/api/events');
+        const events = await res.json();
+
+        const container = document.getElementById('events');
+        container.innerHTML = '';
+
+        events.forEach(event => {
+          const div = document.createElement('div');
+          div.className = 'event';
+          div.innerHTML = `
+            <h3>${event.name}</h3>
+            <p><strong>Date:</strong> ${event.date || 'N/A'}</p>
+            <p><strong>Available Tokens:</strong> ${event.available_tokens}</p>
+            <button onclick="bookToken('${event._id}')">Book Token</button>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        alert("Failed to load events: " + err);
+      }
+    }
+
+    async function bookToken(eventId) {
+      const email = document.getElementById('email').value.trim();
+      if (!email) {
+        alert("Please enter your email before booking.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/book', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventId, email })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          alert(result.message);
+          loadEvents(); // refresh token counts
+        } else {
+          alert("Booking failed: " + result.error);
+        }
+      } catch (err) {
+        alert("Booking failed: " + err);
+      }
+    }
+
+    window.onload = loadEvents;
+</script>
+</body>
+</html>
