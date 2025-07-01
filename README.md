@@ -31,32 +31,7 @@ A Java-based full-stack Event Ticket Token System built using **Vert.x 4.5.1**, 
 
 ---
 
-## Project Structure
 
-src/
-├── main/
-│ ├── java/org/example/
-│ │ ├── Main.java
-│ │ ├── MainVerticle.java
-│ │ ├── config/
-│ │ │ └── AppConfig.java
-│ │ ├── models/
-│ │ ├── routes/
-│ │ │ ├── AuthRoutes.java
-│ │ │ └── EventRoutes.java
-│ │ ├── services/
-│ │ │ ├── UserService.java
-│ │ │ └── EventService.java
-│ │ └── utils/
-│ │ ├── EmailService.java
-│ │ └── PasswordGenerator.java
-│ └── resources/web/
-│ ├── register.html
-│ ├── login.html
-│ └── events.html
-└── pom.xml
-
----
 
 ## Setup Instructions
 
