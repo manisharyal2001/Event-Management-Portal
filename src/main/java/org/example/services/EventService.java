@@ -1,6 +1,7 @@
 package org.example.services;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.RoutingContext;
@@ -15,10 +16,10 @@ public class EventService {
         this.mongoClient = mongoClient;
     }
 
-    public void getAllEvents(io.vertx.core.Handler<io.vertx.core.AsyncResult<io.vertx.core.json.JsonArray>> resultHandler) {
+    public void getAllEvents(io.vertx.core.Handler<io.vertx.core.AsyncResult<JsonArray>> resultHandler) {
         mongoClient.find("event_ticket", new JsonObject(), ar -> {
             if (ar.succeeded()) {
-                resultHandler.handle(io.vertx.core.Future.succeededFuture(new io.vertx.core.json.JsonArray(ar.result())));
+                resultHandler.handle(io.vertx.core.Future.succeededFuture(new JsonArray(ar.result())));
             } else {
                 resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
             }
@@ -33,56 +34,67 @@ public class EventService {
         if (eventId == null || userEmail == null) {
             ctx.response()
                     .setStatusCode(400)
+                    .putHeader("Content-Type", "application/json")
                     .end(new JsonObject().put("error", "Missing eventId or email").encode());
             return;
         }
 
-        // Check if tokens are available
-        JsonObject query = new JsonObject().put("_id", eventId);
+        JsonObject query = new JsonObject().put("_id", eventId); // _id is string like "E1"
 
         mongoClient.findOne("event_ticket", query, null, event -> {
-            if (event.succeeded() && event.result() != null) {
+            if (event.succeeded()) {
                 JsonObject eventDoc = event.result();
-                int availableTokens = eventDoc.getInteger("available_tokens", 0);
 
-                if (availableTokens > 0) {
-                    // Reduce token count
-                    JsonObject update = new JsonObject()
-                            .put("$set", new JsonObject().put("available_tokens", availableTokens - 1));
+                if (eventDoc != null) {
+                    int availableTokens = eventDoc.getInteger("available_tokens", 0);
 
-                    mongoClient.updateCollection("event_ticket", query, update, updateResult -> {
-                        if (updateResult.succeeded()) {
-                            // Save booking
-                            JsonObject booking = new JsonObject()
-                                    .put("event_id", eventId)
-                                    .put("email", userEmail);
+                    if (availableTokens > 0) {
+                        JsonObject update = new JsonObject()
+                                .put("$set", new JsonObject().put("available_tokens", availableTokens - 1));
 
-                            mongoClient.insert("booking", booking, insertResult -> {
-                                if (insertResult.succeeded()) {
-                                    ctx.response()
-                                            .putHeader("Content-Type", "application/json")
-                                            .end(new JsonObject().put("message", "Token booked successfully!").encode());
-                                } else {
-                                    ctx.response()
-                                            .setStatusCode(500)
-                                            .end(new JsonObject().put("error", insertResult.cause().getMessage()).encode());
-                                }
-                            });
-                        } else {
-                            ctx.response()
-                                    .setStatusCode(500)
-                                    .end(new JsonObject().put("error", updateResult.cause().getMessage()).encode());
-                        }
-                    });
+                        mongoClient.updateCollection("event_ticket", query, update, updateResult -> {
+                            if (updateResult.succeeded()) {
+                                JsonObject booking = new JsonObject()
+                                        .put("event_id", eventId)
+                                        .put("email", userEmail);
+
+                                mongoClient.insert("booking", booking, insertResult -> {
+                                    if (insertResult.succeeded()) {
+                                        ctx.response()
+                                                .putHeader("Content-Type", "application/json")
+                                                .end(new JsonObject().put("message", "Token booked successfully!").encode());
+                                    } else {
+                                        ctx.response()
+                                                .setStatusCode(500)
+                                                .putHeader("Content-Type", "application/json")
+                                                .end(new JsonObject().put("error", insertResult.cause().getMessage()).encode());
+                                    }
+                                });
+                            } else {
+                                ctx.response()
+                                        .setStatusCode(500)
+                                        .putHeader("Content-Type", "application/json")
+                                        .end(new JsonObject().put("error", updateResult.cause().getMessage()).encode());
+                            }
+                        });
+                    } else {
+                        ctx.response()
+                                .setStatusCode(400)
+                                .putHeader("Content-Type", "application/json")
+                                .end(new JsonObject().put("error", "No tokens available").encode());
+                    }
                 } else {
                     ctx.response()
-                            .setStatusCode(400)
-                            .end(new JsonObject().put("error", "No tokens available").encode());
+                            .setStatusCode(404)
+                            .putHeader("Content-Type", "application/json")
+                            .end(new JsonObject().put("error", "Event not found").encode());
                 }
             } else {
+                System.err.println("Event fetch error: " + event.cause());
                 ctx.response()
-                        .setStatusCode(404)
-                        .end(new JsonObject().put("error", "Event not found").encode());
+                        .setStatusCode(500)
+                        .putHeader("Content-Type", "application/json")
+                        .end(new JsonObject().put("error", "Error fetching event").encode());
             }
         });
     }

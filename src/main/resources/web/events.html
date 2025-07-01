@@ -4,126 +4,153 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Events - Event Ticket System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * {
+          margin: 0; padding: 0; box-sizing: border-box;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
         body {
-          background: linear-gradient(to right, #1c92d2, #f2fcfe);
+          background: linear-gradient(to right, #74ebd5, #ACB6E5);
+          min-height: 100vh;
           padding: 40px 20px;
-          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
         }
 
         h1 {
-          font-size: 2.4rem;
-          margin-bottom: 20px;
-          color: #fff;
+          font-size: 2.5rem;
+          margin-bottom: 30px;
+          color: #222;
         }
 
         .events-container {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 20px;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 25px;
+          width: 100%;
           max-width: 1000px;
-          margin: auto;
         }
 
         .event-card {
-          background: #ffffff;
-          padding: 20px;
-          border-radius: 10px;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+          background: #fff;
+          padding: 25px;
+          border-radius: 12px;
+          box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+          text-align: center;
+          transition: transform 0.2s ease;
+        }
+
+        .event-card:hover {
+          transform: scale(1.02);
         }
 
         .event-card h3 {
-          font-size: 1.3rem;
+          font-size: 1.4rem;
           margin-bottom: 10px;
+          color: #333;
         }
 
         .event-card p {
-          font-size: 0.95rem;
-          margin-bottom: 10px;
+          margin: 6px 0;
+          font-size: 1rem;
           color: #444;
         }
 
-        .event-card button {
-          padding: 10px 16px;
-          border: none;
-          border-radius: 6px;
-          background-color: #1c92d2;
-          color: white;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.3s ease;
+        .event-card strong {
+          color: #111;
         }
 
-        .event-card button:hover {
-          background-color: #1264a3;
+        .btn {
+          margin-top: 15px;
+          padding: 10px 18px;
+          background-color: #007BFF;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+          background-color: #0056b3;
         }
 
         footer {
-          margin-top: 30px;
-          color: #ffffffcc;
+          margin-top: 40px;
+          color: #333;
         }
     </style>
 </head>
 <body>
 
-<h1>🎫 Available Events</h1>
+<h1>🎟 Available Events</h1>
 
-<div class="events-container" id="eventsList">
-    <!-- Events will be injected here -->
+<div class="events-container" id="eventsContainer">
+    <!-- Dynamic event cards go here -->
 </div>
 
 <footer>© 2025 Manish Aryal</footer>
 
 <script>
-    async function loadEvents() {
+    async function fetchEvents() {
       try {
-        const response = await fetch('/api/events');
-        const events = await response.json();
+        const response = await fetch("/api/events");
+        const data = await response.json();
 
-        const eventsList = document.getElementById('eventsList');
-        eventsList.innerHTML = '';
+        const container = document.getElementById("eventsContainer");
+        container.innerHTML = "";
 
-        events.forEach(event => {
-          const div = document.createElement('div');
-          div.className = 'event-card';
-          div.innerHTML = `
+        data.forEach(event => {
+          const card = document.createElement("div");
+          card.className = "event-card";
+
+          card.innerHTML = `
             <h3>${event.name}</h3>
-            <p><strong>Location:</strong> ${event.location}</p>
+            <p><strong>Location:</strong> ${event.location || 'TBA'}</p>
             <p><strong>Date:</strong> ${event.date}</p>
-            <p><strong>Time:</strong> ${event.time}</p>
-            <button onclick="bookEvent('${event._id}')">Book Token</button>
+            <p><strong>Time:</strong> ${event.time || 'TBA'}</p>
+            <p><strong>Available Tokens:</strong> ${event.available_tokens}</p>
+            <button class="btn" onclick="bookToken('${event._id}')">Book Token</button>
           `;
-          eventsList.appendChild(div);
+
+          container.appendChild(card);
         });
       } catch (error) {
-        console.error('Failed to load events:', error);
+        alert("❌ Failed to fetch events.");
+        console.error(error);
       }
     }
 
-    async function bookEvent(eventId) {
+    async function bookToken(eventId) {
+      const email = prompt("Enter your email to confirm booking:");
+      if (!email) return;
+
       try {
-        const response = await fetch('/api/book', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ eventId })
+        const res = await fetch("/api/book", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ eventId, email }),
         });
 
-        if (response.ok) {
-          alert("✅ Token booked successfully!");
+        const result = await res.json();
+
+        if (res.ok) {
+          alert("✅ " + result.message);
+          fetchEvents(); // refresh the UI
         } else {
-          const data = await response.json();
-          alert("❌ Booking failed: " + (data.message || "Unknown error"));
+          alert("❌ Booking failed: " + (result.error || "Unknown error"));
         }
       } catch (err) {
-        alert("❌ Error booking event.");
+        alert("❌ Network error during booking.");
         console.error(err);
       }
     }
 
-    loadEvents();
+    // Load events on page load
+    fetchEvents();
 </script>
 
 </body>
