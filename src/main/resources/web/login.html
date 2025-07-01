@@ -1,91 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Login</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Login - Event Ticket System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
         body {
-          font-family: Arial, sans-serif;
-          padding: 40px;
-          max-width: 400px;
-          margin: auto;
+          background: linear-gradient(to right, #1c92d2, #f2fcfe);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          text-align: center;
+          padding: 20px;
         }
 
-        h2 {
-          text-align: center;
-          color: #333;
+        h1 {
+          font-size: 2.2rem;
+          margin-bottom: 30px;
+          color: #fff;
         }
 
         form {
-          display: flex;
-          flex-direction: column;
+          background: #ffffff;
+          padding: 30px 40px;
+          border-radius: 12px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+          max-width: 400px;
+          width: 100%;
         }
 
         input {
-          padding: 10px;
-          margin: 10px 0;
-          border: 1px solid #ccc;
+          width: 100%;
+          padding: 12px;
+          margin-bottom: 16px;
           border-radius: 6px;
+          border: 1px solid #ccc;
+          font-size: 1rem;
         }
 
         button {
-          padding: 10px;
-          background-color: #007bff;
-          color: white;
+          padding: 12px 20px;
           border: none;
           border-radius: 6px;
+          background-color: #1c92d2;
+          color: white;
+          font-weight: 600;
+          font-size: 1rem;
           cursor: pointer;
+          width: 100%;
+          transition: background-color 0.3s ease;
         }
 
         button:hover {
-          background-color: #0056b3;
+          background-color: #1264a3;
         }
 
-        .message {
-          color: red;
-          margin-top: 10px;
+        a {
+          color: #ffffff;
+          margin-top: 20px;
+          display: inline-block;
+          text-decoration: underline;
+        }
+
+        footer {
+          margin-top: 30px;
+          color: #ffffffcc;
         }
     </style>
 </head>
 <body>
-<h2>Login</h2>
+
+<h1>🔐 Login</h1>
+
 <form id="loginForm">
-    <input type="email" id="email" placeholder="Enter your email" required>
-    <input type="password" id="password" placeholder="Enter your password" required>
+    <input type="email" id="email" placeholder="Email Address" required />
+    <input type="password" id="password" placeholder="Password" required />
     <button type="submit">Login</button>
-    <div class="message" id="message"></div>
 </form>
+
+<a href="register.html">New here? Register →</a>
+
+<footer>© 2025 Manish Aryal</footer>
 
 <script>
     document.getElementById("loginForm").addEventListener("submit", async function (e) {
       e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const message = document.getElementById("message");
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
       try {
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
         });
 
-        const result = await response.json();
         if (response.ok) {
-          message.style.color = 'green';
-          message.textContent = "Login successful!";
-          // Optional: redirect to dashboard
-          setTimeout(() => {
-            window.location.href = "/events.html";
-          }, 1000);
+          alert("✅ Login successful!");
+          window.location.href = "events.html";
         } else {
-          message.style.color = 'red';
-          message.textContent = result.error || "Login failed";
+          const data = await response.json();
+          alert("❌ Login failed: " + (data.message || "Unknown error"));
         }
-      } catch (err) {
-        message.textContent = "Error: " + err.message;
+      } catch (error) {
+        alert("❌ Network error during login.");
+        console.error(error);
       }
     });
 </script>
+
 </body>
 </html>
